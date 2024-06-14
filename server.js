@@ -18,3 +18,22 @@ connectToDb((err) => {
     }
 })
 
+app.get('/finish', (req, res) => {
+    const movies = [];
+
+    db
+        .collection('finish')
+        .find()
+        .sort({title: 1})
+        .forEach(movie =>movies.push(movie))
+        .then(() => {
+            res
+                .status(200)
+                .json(movies);
+        })
+        .catch(() => {
+            res 
+                .status(500)
+                .json({err: "Something went wrong..."})
+        })
+})
