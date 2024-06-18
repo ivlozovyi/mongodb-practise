@@ -1,24 +1,25 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const { ObjectId } = require('mongodb');
-const {connectToDb, getDb} = require('./db')
 
 const PORT = 3000;
+const URL = 'mongodb://localhost:27017/mongoPractise';
 
 const app = express();
 app.use(express.json());
 
+mongoose
+    .connect(URL)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => console.log(`DB connection error: ${err}`))
+
+app.listen(PORT, (err) => {
+    err ? console.log(err) : console.log(`Listening on port ${PORT}`)
+});
+
 let db;
 
-connectToDb((err) => {
-    if (!err) {
-        app.listen(PORT, (err) => {
-            err ? console.log(err) : console.log(`Listening on port ${PORT}`)
-        });
-        db = getDb();
-    } else {
-        console.log(`DB connection error: ${err}`)
-    }
-});
+
 
 const handleError = (res, error) => {
     res.status(500).json({error});
@@ -28,7 +29,7 @@ app.get('/movies', (req, res) => {
     const movies = [];
 
     db
-        .collection('finish')
+        .collection('movies')
         .find()
         .sort({title: 1})
         .forEach(movie =>movies.push(movie))
@@ -43,7 +44,7 @@ app.get('/movies', (req, res) => {
 app.get('/movies/:id', (req, res) => {
     if(ObjectId.isValid(req.params.id)) {
         db
-        .collection('finish')
+        .collection('movies')
         .findOne({ _id: new ObjectId(req.params.id) })
         .then((doc) => {
             res
@@ -60,7 +61,7 @@ app.get('/movies/:id', (req, res) => {
 app.delete('/movies/:id', (req, res) => {
     if(ObjectId.isValid(req.params.id)) {
         db
-        .collection('finish')
+        .collection('movies')
         .deleteOne({ _id: new ObjectId(req.params.id) })
         .then((result) => {
             res
@@ -76,7 +77,7 @@ app.delete('/movies/:id', (req, res) => {
 
 app.post('/movies', (req, res) => {
     db
-        .collection('finish')
+        .collection('movies')
         .insertOne(req.body)
         .then((result) => {
             res
@@ -89,7 +90,7 @@ app.post('/movies', (req, res) => {
 app.patch('/movies/:id', (req, res) => {
     if(ObjectId.isValid(req.params.id)) {
         db
-        .collection('finish')
+        .collection('movies')
         .updateOne({ _id: new ObjectId(req.params.id) }, { $set: req.body}) 
         .then((result) => {
             res
